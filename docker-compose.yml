@@ -1,0 +1,39 @@
+# docker-compose.yml
+version: '3.8'
+
+services:
+  # 1. The High-Speed In-Memory Feature Store
+  redis-feature-store:
+    image: redis:7-alpine
+    container_name: fraud-redis
+    ports:
+      - "6379:6379"
+    networks:
+      - mlops-network
+    restart: unless-stopped
+
+  # 2. The Model Serving Layer (Your FastAPI App)
+  inference-api:
+    build: .
+    container_name: fraud-inference-api
+    ports:
+      - "8000:8000"
+    depends_on:
+      - redis-feature-store
+    networks:
+      - mlops-network
+    environment:
+      # Injecting environment variables so the API knows how to find Redis
+      - REDIS_HOST=redis-feature-store
+      - REDIS_PORT=6379
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          # Simulating hardware constraints (Edge/Cost-saving deployment)
+          memory: 4G
+
+# Create a private, isolated network for the microservices
+networks:
+  mlops-network:
+    driver: bridge
