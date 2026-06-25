@@ -1,0 +1,9 @@
+# prometheus.yml
+global:
+  scrape_interval: 5s # Scrape metrics every 5 seconds
+
+scrape_configs:
+  - job_name: 'fastapi-inference'
+    static_configs:
+      # This hostname maps perfectly to your docker-compose service name
+      - targets: ['inference-api:8000']
