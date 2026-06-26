@@ -69,8 +69,13 @@ class FraudDetectionModel:
         return results
 
 # --- 3. FastAPI Application ---
+from prometheus_fastapi_instrumentator import Instrumentator
+
 app = FastAPI(title="Fraud Detection Inference Server")
 model = FraudDetectionModel()
+
+# Installs a /metrics endpoint that Prometheus will scrape every 5 seconds
+Instrumentator().instrument(app).expose(app)
 
 @app.on_event("startup")
 async def startup_event():
