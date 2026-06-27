@@ -1,0 +1,43 @@
+# .github/workflows/mlops-ci.yml
+name: MLOps CI Pipeline
+
+# Trigger this workflow every time code is pushed or a PR is opened against the main branch
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build-and-test:
+    name: Build, Test, and Verify
+    runs-on: ubuntu-latest
+
+    steps:
+    # Step 1: Clone the repository into the GitHub Actions runner
+    - name: Checkout Repository
+      uses: actions/checkout@v3
+
+    # Step 2: Provision the exact Python version used in our Dockerfile
+    - name: Set up Python 3.10
+      uses: actions/setup-python@v4
+      with:
+        python-version: "3.10"
+
+    # Step 3: Install all system dependencies required for testing
+    - name: Install Dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install fastapi uvicorn pydantic pytest httpx
+
+    # Step 4: Execute the test suite to ensure the API logic hasn't broken
+    # (Assuming you create a basic tests/test_api.py file)
+    - name: Run PyTest Suite
+      run: |
+        pytest tests/ --disable-warnings -q
+
+    # Step 5: Verify the infrastructure still compiles
+    # If the Dockerfile is broken, this step fails, preventing a broken deployment
+    - name: Test Docker Build
+      run: |
+        docker build -t fraud-inference-api:test-build .
